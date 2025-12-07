@@ -1,20 +1,37 @@
 @web_api_HostAddress = http://localhost:5267
+@apiKey = Kp9mX2nQ7vL4sR8t
 
-### Get all users
+### Test: Missing API Key (Should return 401)
 GET {{web_api_HostAddress}}/users
 Accept: application/json
+
+###
+
+### Test: Invalid API Key (Should return 401)
+GET {{web_api_HostAddress}}/users
+Accept: application/json
+api-key: InvalidKeyHere123
+
+###
+
+### Get all users (With valid API key)
+GET {{web_api_HostAddress}}/users
+Accept: application/json
+api-key: {{apiKey}}
 
 ###
 
 ### Get user by ID (replace with actual ID after creating a user)
 GET {{web_api_HostAddress}}/users/00000000-0000-0000-0000-000000000000
 Accept: application/json
+api-key: {{apiKey}}
 
 ###
 
 ### Create a new user - John Doe
 POST {{web_api_HostAddress}}/users
 Content-Type: application/json
+api-key: {{apiKey}}
 
 {
   "name": "John Doe",
@@ -27,6 +44,7 @@ Content-Type: application/json
 ### Create a new user - Jane Smith
 POST {{web_api_HostAddress}}/users
 Content-Type: application/json
+api-key: {{apiKey}}
 
 {
   "name": "Jane Smith",
@@ -39,6 +57,7 @@ Content-Type: application/json
 ### Update user (replace ID with actual user ID)
 PUT {{web_api_HostAddress}}/users/00000000-0000-0000-0000-000000000000
 Content-Type: application/json
+api-key: {{apiKey}}
 
 {
   "name": "John Updated",
@@ -50,12 +69,21 @@ Content-Type: application/json
 
 ### Delete user (replace ID with actual user ID)
 DELETE {{web_api_HostAddress}}/users/00000000-0000-0000-0000-000000000000
+api-key: {{apiKey}}
 
 ###
 
-### Test validation - Invalid name (too short)
+### Test: Null/Empty request body (Should return 400)
 POST {{web_api_HostAddress}}/users
 Content-Type: application/json
+api-key: {{apiKey}}
+
+###
+
+### Test: Invalid name - too short (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
 
 {
   "name": "J",
@@ -65,9 +93,49 @@ Content-Type: application/json
 
 ###
 
-### Test validation - Invalid email format
+### Test: Invalid name - too long (Should return 400)
 POST {{web_api_HostAddress}}/users
 Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "This is a very long name that exceeds fifty characters limit",
+  "username": "testuser",
+  "email": "test@example.com"
+}
+
+###
+
+### Test: Invalid username - too short (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Test User",
+  "username": "ab",
+  "email": "test@example.com"
+}
+
+###
+
+### Test: Invalid username - special characters (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Test User",
+  "username": "test@user",
+  "email": "test@example.com"
+}
+
+###
+
+### Test: Invalid email format (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
 
 {
   "name": "Test User",
@@ -77,14 +145,119 @@ Content-Type: application/json
 
 ###
 
-### Test validation - Script tag detection
+### Test: Script tag detection in name (Should return 400)
 POST {{web_api_HostAddress}}/users
 Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Test<script>alert('xss')</script>",
+  "username": "testuser",
+  "email": "test@example.com"
+}
+
+###
+
+### Test: Script tag detection in username (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
 
 {
   "name": "Test User",
   "username": "test<script>",
   "email": "test@example.com"
 }
+
+###
+
+### Test: JavaScript injection in email (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Test User",
+  "username": "testuser",
+  "email": "javascript:alert('xss')@example.com"
+}
+
+###
+
+### Test: Duplicate username (Create first user, then try again - Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Duplicate Test",
+  "username": "duplicateuser",
+  "email": "duplicate1@example.com"
+}
+
+###
+
+### Test: Duplicate username attempt (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Another User",
+  "username": "duplicateuser",
+  "email": "duplicate2@example.com"
+}
+
+###
+
+### Test: Duplicate email (Should return 400)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Another User",
+  "username": "differentuser",
+  "email": "duplicate1@example.com"
+}
+
+###
+
+### Test: Whitespace trimming (spaces around fields should be trimmed)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "  John Trimmed  ",
+  "username": "  trimuser  ",
+  "email": "  trim@example.com  "
+}
+
+###
+
+### Test: Non-existent user ID (Should return 404)
+GET {{web_api_HostAddress}}/users/12345678-1234-1234-1234-123456789012
+Accept: application/json
+api-key: {{apiKey}}
+
+###
+
+### Test: Update non-existent user (Should return 404)
+PUT {{web_api_HostAddress}}/users/12345678-1234-1234-1234-123456789012
+Content-Type: application/json
+api-key: {{apiKey}}
+
+{
+  "name": "Should Not Work",
+  "username": "shouldnotwork",
+  "email": "notwork@example.com"
+}
+
+###
+
+### Test: Delete non-existent user (Should return 404)
+DELETE {{web_api_HostAddress}}/users/12345678-1234-1234-1234-123456789012
+api-key: {{apiKey}}
 
 ###

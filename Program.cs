@@ -1,5 +1,6 @@
 using UserManagement.Models;
 using UserManagement.Helpers;
+using UserManagement.Middleware;
 using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,9 @@ else
 
 // Add built-in HTTP logging middleware
 app.UseHttpLogging();
+
+// Add API key authentication middleware
+app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
 
 //app.UseHttpsRedirection();
 
