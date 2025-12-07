@@ -1,5 +1,6 @@
 using UserManagement.Models;
 using UserManagement.Helpers;
+using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,15 +19,45 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/error");
 }
 
 // Add built-in HTTP logging middleware
 app.UseHttpLogging();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // In-memory user store
 var userStore = new Dictionary<Guid, User>();
+
+// Error handling endpoint
+app.Map("/error", (HttpContext context) =>
+{
+    var exceptionHandler = context.Features.Get<IExceptionHandlerFeature>();
+    var exception = exceptionHandler?.Error;
+
+    var statusCode = exception switch
+    {
+        ArgumentNullException => StatusCodes.Status400BadRequest,
+        ArgumentException => StatusCodes.Status400BadRequest,
+        KeyNotFoundException => StatusCodes.Status404NotFound,
+        InvalidOperationException => StatusCodes.Status400BadRequest,
+        UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+        NotImplementedException => StatusCodes.Status501NotImplemented,
+        _ => StatusCodes.Status500InternalServerError
+    };
+
+    var errorMessage = statusCode == StatusCodes.Status500InternalServerError
+        ? "An internal server error occurred. Please try again later."
+        : exception?.Message ?? "An error occurred.";
+
+    context.Response.StatusCode = statusCode;
+    return Results.Json(new { error = errorMessage, statusCode });
+});
 
 // GET: Retrieve all users
 app.MapGet("/users", () =>
