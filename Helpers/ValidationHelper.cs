@@ -15,7 +15,10 @@ public static class ValidationHelper
             return (false, "Name is required");
         }
 
-        if (ContainsScriptTag(name))
+        // Trim before validation
+        name = name.Trim();
+
+        if (ContainsHtmlOrScript(name))
         {
             return (false, "Name contains invalid content");
         }
@@ -35,7 +38,10 @@ public static class ValidationHelper
             return (false, "Username is required");
         }
 
-        if (ContainsScriptTag(username))
+        // Trim before validation
+        username = username.Trim();
+
+        if (ContainsHtmlOrScript(username))
         {
             return (false, "Username contains invalid content");
         }
@@ -55,7 +61,10 @@ public static class ValidationHelper
             return (false, "Email is required");
         }
 
-        if (ContainsScriptTag(email))
+        // Trim before validation
+        email = email.Trim();
+
+        if (ContainsHtmlOrScript(email))
         {
             return (false, "Email contains invalid content");
         }
@@ -68,9 +77,30 @@ public static class ValidationHelper
         return (true, string.Empty);
     }
 
-    private static bool ContainsScriptTag(string input)
+    private static bool ContainsHtmlOrScript(string input)
     {
-        return input.Contains("<script>", StringComparison.OrdinalIgnoreCase) ||
-               input.Contains("</script>", StringComparison.OrdinalIgnoreCase);
+        // Check for common XSS patterns
+        var dangerousPatterns = new[]
+        {
+            "<script", "</script>",
+            "<iframe", "</iframe>",
+            "<object", "</object>",
+            "<embed", "</embed>",
+            "javascript:",
+            "onerror=",
+            "onload=",
+            "onclick=",
+            "onmouseover="
+        };
+
+        foreach (var pattern in dangerousPatterns)
+        {
+            if (input.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
