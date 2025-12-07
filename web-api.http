@@ -1,6 +1,90 @@
 @web_api_HostAddress = http://localhost:5267
 
-GET {{web_api_HostAddress}}/weatherforecast/
+### Get all users
+GET {{web_api_HostAddress}}/users
 Accept: application/json
+
+###
+
+### Get user by ID (replace with actual ID after creating a user)
+GET {{web_api_HostAddress}}/users/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+###
+
+### Create a new user - John Doe
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "username": "johndoe",
+  "email": "john.doe@example.com"
+}
+
+###
+
+### Create a new user - Jane Smith
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "username": "janesmith",
+  "email": "jane.smith@example.com"
+}
+
+###
+
+### Update user (replace ID with actual user ID)
+PUT {{web_api_HostAddress}}/users/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "username": "johnupdated",
+  "email": "john.updated@example.com"
+}
+
+###
+
+### Delete user (replace ID with actual user ID)
+DELETE {{web_api_HostAddress}}/users/00000000-0000-0000-0000-000000000000
+
+###
+
+### Test validation - Invalid name (too short)
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "name": "J",
+  "username": "testuser",
+  "email": "test@example.com"
+}
+
+###
+
+### Test validation - Invalid email format
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "username": "testuser",
+  "email": "invalid-email"
+}
+
+###
+
+### Test validation - Script tag detection
+POST {{web_api_HostAddress}}/users
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "username": "test<script>",
+  "email": "test@example.com"
+}
 
 ###
